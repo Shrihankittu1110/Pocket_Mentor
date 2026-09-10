@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { ACHIEVEMENTS_LIST } from '../services/gamificationService.js';
+import { ACHIEVEMENTS_LIST, updateDailyStreak } from '../services/gamificationService.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'pocket_mentor_super_secret_jwt_key_2026_production_secure', {
@@ -21,15 +21,19 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email already exists' });
     }
 
+    const now = new Date();
     const user = await User.create({
       name,
       email: email.toLowerCase().trim(),
       password,
       college: college || 'Tech University',
       course: course || 'Computer Science',
+      year: year || '3rd Year',
       totalPoints: 0,
-      dailyStreak: 0,
-      longestStreak: 0,
+      dailyStreak: 1, // Logging in / active on signup starts day 1 streak!
+      longestStreak: 1,
+      lastActiveDate: now,
+      loginDates: [now],
       achievements: [],
     });
 
@@ -77,8 +81,16 @@ export const login = async (req, res) => {
 
     if (user.profileImage && user.profileImage.includes('bottts')) {
       user.profileImage = user.profileImage.replace('bottts', 'avataaars');
-      await user.save();
     }
+
+    // Record login date & update daily streak
+    const now = new Date();
+    user.lastActiveDate = now;
+    if (!user.loginDates) user.loginDates = [];
+    user.loginDates.push(now);
+
+    await updateDailyStreak(user);
+    await user.save();
 
     const token = generateToken(user._id);
 

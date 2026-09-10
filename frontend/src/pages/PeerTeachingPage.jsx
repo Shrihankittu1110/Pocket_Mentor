@@ -15,16 +15,19 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { useSound } from '../context/SoundContext';
 import { getHumanAvatar } from '../utils/avatarHelper';
 
 export const PeerTeachingPage = () => {
   const { user, awardPoints } = useAuth();
-  const { playCorrect, playAchievement } = useSound();
+  const { socket } = useSocket();
+  const { playCorrect, playAchievement, playFlip } = useSound();
 
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [askLoading, setAskLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [showAskModal, setShowAskModal] = useState(false);
 
@@ -61,19 +64,47 @@ export const PeerTeachingPage = () => {
     fetchPosts();
   }, [search]);
 
+  // Real-time broadcast listener for peer questions across all users
+  useEffect(() => {
+    if (!socket) return;
+
+    const handlePeerQuestionAlert = (newQuestion) => {
+      setPosts(prev => {
+        if (prev.some(p => p._id === newQuestion._id)) return prev;
+        return [newQuestion, ...prev];
+      });
+      playFlip();
+    };
+
+    socket.on('peer_question_alert', handlePeerQuestionAlert);
+
+    return () => {
+      socket.off('peer_question_alert', handlePeerQuestionAlert);
+    };
+  }, [socket, playFlip]);
+
   // Create Question
   const handleAskQuestion = async (e) => {
     e.preventDefault();
+    setAskLoading(true);
     try {
       const { data } = await api.post('/peer/questions', questionFormData);
       playCorrect();
       awardPoints(10);
+
+      // Broadcast in real-time to all other online students
+      if (socket) {
+        socket.emit('new_peer_question', data);
+      }
+
       setPosts(prev => [data, ...prev]);
       setSelectedPost(data);
       setShowAskModal(false);
       setQuestionFormData({ title: '', question: '', topic: 'React & Web', subject: 'Computer Science' });
     } catch (err) {
       alert('Failed to post question: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setAskLoading(false);
     }
   };
 
@@ -137,13 +168,13 @@ export const PeerTeachingPage = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-black uppercase mb-1">
             <GraduationCap className="w-3.5 h-3.5" />
-            <span>Peer Mentoring & Collaborative Knowledge</span>
+            <span>🌍 Public Peer Forum • Questions visible to all students</span>
           </div>
           <h1 className="font-fun text-3xl font-black text-slate-900">
             👨‍🏫 Peer Teaching Hub
           </h1>
           <p className="text-slate-500 text-sm font-medium">
-            Explain difficult topics to fellow students, vote on great answers, and earn Mentor Badges
+            Post questions for the entire student community to discuss, vote on great explanations, and earn Mentor Badges
           </p>
         </div>
 
@@ -387,8 +418,9 @@ export const PeerTeachingPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl relative">
             <button
-              onClick={() => setShowAskModal(false)}
-              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600"
+              onClick={() => !askLoading && setShowAskModal(false)}
+              disabled={askLoading}
+              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600 disabled:opacity-50"
             >
               <X className="w-6 h-6" />
             </button>
@@ -405,10 +437,11 @@ export const PeerTeachingPage = () => {
                 <input
                   type="text"
                   required
+                  disabled={askLoading}
                   value={questionFormData.title}
                   onChange={(e) => setQuestionFormData({ ...questionFormData, title: e.target.value })}
                   placeholder="e.g. How does Virtual Memory handle Page Faults?"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -419,10 +452,11 @@ export const PeerTeachingPage = () => {
                   </label>
                   <input
                     type="text"
+                    disabled={askLoading}
                     value={questionFormData.topic}
                     onChange={(e) => setQuestionFormData({ ...questionFormData, topic: e.target.value })}
                     placeholder="Operating Systems"
-                    className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
                 </div>
                 <div>
@@ -431,10 +465,11 @@ export const PeerTeachingPage = () => {
                   </label>
                   <input
                     type="text"
+                    disabled={askLoading}
                     value={questionFormData.subject}
                     onChange={(e) => setQuestionFormData({ ...questionFormData, subject: e.target.value })}
                     placeholder="Computer Science"
-                    className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
                 </div>
               </div>
@@ -446,19 +481,30 @@ export const PeerTeachingPage = () => {
                 <textarea
                   rows={4}
                   required
+                  disabled={askLoading}
                   value={questionFormData.question}
                   onChange={(e) => setQuestionFormData({ ...questionFormData, question: e.target.value })}
                   placeholder="Explain what concept is confusing, what you've tried, or where you need peer clarification..."
-                  className="w-full p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none resize-none"
+                  className="w-full p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-purple focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-2xl btn-duo-purple text-xs font-black flex items-center justify-center gap-2"
+                disabled={askLoading || !questionFormData.title.trim() || !questionFormData.question.trim()}
+                className="w-full py-3.5 rounded-2xl btn-duo-purple text-xs font-black flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-duo-purple hover:scale-[1.01] active:scale-95 transition-all duration-200"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Publish to Peer Community (+10 XP)</span>
+                {askLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Publishing to Peer Community...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Publish to Peer Community (+10 XP)</span>
+                  </>
+                )}
               </button>
             </form>
           </div>

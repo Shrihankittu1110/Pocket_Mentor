@@ -50,6 +50,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  loginDates: [
+    {
+      type: Date,
+      default: Date.now,
+    },
+  ],
   totalPoints: {
     type: Number,
     default: 0,

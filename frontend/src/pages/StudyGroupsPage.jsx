@@ -29,6 +29,8 @@ export const StudyGroupsPage = () => {
   const [newMessageText, setNewMessageText] = useState('');
   const [typingUser, setTypingUser] = useState('');
   const [loading, setLoading] = useState(true);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
 
   // Modals & join input
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -156,6 +158,7 @@ export const StudyGroupsPage = () => {
   // Create Group
   const handleCreateGroup = async (e) => {
     e.preventDefault();
+    setCreateLoading(true);
     try {
       const { data } = await api.post('/groups', createFormData);
       playCorrect();
@@ -163,8 +166,11 @@ export const StudyGroupsPage = () => {
       setGroups(prev => [data, ...prev]);
       setShowCreateModal(false);
       selectGroup(data);
+      setCreateFormData({ name: '', description: '', subject: 'Web Development' });
     } catch (err) {
       alert('Failed to create group: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -172,15 +178,18 @@ export const StudyGroupsPage = () => {
   const handleJoinByCode = async (e) => {
     e.preventDefault();
     if (!joinCodeInput.trim()) return;
+    setJoinLoading(true);
     try {
       const { data } = await api.post('/groups/join', { groupCode: joinCodeInput.trim() });
       playCorrect();
       awardPoints(15);
-      fetchGroups();
+      await fetchGroups();
       selectGroup(data.group);
       setJoinCodeInput('');
     } catch (err) {
       alert('Join error: ' + (err.response?.data?.message || 'Invalid group code'));
+    } finally {
+      setJoinLoading(false);
     }
   };
 
@@ -198,11 +207,14 @@ export const StudyGroupsPage = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-black uppercase mb-1">
             <Users className="w-3.5 h-3.5" />
-            <span>Socket.io Real-Time Rooms</span>
+            <span>Private Real-Time Study Rooms</span>
           </div>
           <h1 className="font-fun text-3xl font-black text-slate-900">
             👥 Student Study Groups
           </h1>
+          <p className="text-xs text-slate-500 font-medium">
+            Only your created or joined groups appear here. Share your unique code for others to join!
+          </p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -212,20 +224,29 @@ export const StudyGroupsPage = () => {
               type="text"
               placeholder="Enter Group Code"
               value={joinCodeInput}
+              disabled={joinLoading}
               onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
-              className="px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold uppercase w-32 focus:outline-none focus:border-cyan-400"
+              className="px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold uppercase w-36 focus:outline-none focus:border-cyan-400 disabled:opacity-60 disabled:cursor-not-allowed"
             />
             <button
               type="submit"
-              className="px-3 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition"
+              disabled={joinLoading || !joinCodeInput.trim()}
+              className="px-3 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
             >
-              Join
+              {joinLoading ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Joining...</span>
+                </>
+              ) : (
+                <span>Join</span>
+              )}
             </button>
           </form>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 rounded-xl btn-duo-green text-xs font-black flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl btn-duo-green text-xs font-black flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>New Group</span>
@@ -239,37 +260,57 @@ export const StudyGroupsPage = () => {
         {/* Left Study Groups List */}
         <div className="md:col-span-4 border-r border-slate-200 flex flex-col h-full bg-slate-50">
           <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-            <span className="font-fun font-bold text-slate-800 text-sm">Study Channels</span>
+            <span className="font-fun font-bold text-slate-800 text-sm">Your Channels</span>
             <span className="text-xs font-bold text-slate-400">{groups.length} active</span>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {groups.map((grp) => {
-              const isSelected = activeGroup?._id === grp._id;
-              return (
+            {groups.length === 0 ? (
+              <div className="p-6 text-center space-y-3 my-auto">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-700 mx-auto flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-fun font-bold text-sm text-slate-800">No Groups Joined</p>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    You only see your own created groups or groups you joined via code.
+                  </p>
+                </div>
                 <button
-                  key={grp._id}
-                  onClick={() => selectGroup(grp)}
-                  className={`w-full text-left p-3 rounded-2xl transition flex items-start gap-3 ${
-                    isSelected
-                      ? 'bg-cyan-50 border-2 border-cyan-300 text-cyan-900 shadow-sm'
-                      : 'hover:bg-white text-slate-700 border-2 border-transparent'
-                  }`}
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold shadow-sm transition hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-fun font-black text-sm shrink-0">
-                    <Hash className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-fun font-bold text-sm truncate">{grp.name}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{grp.subject}</p>
-                    <div className="flex items-center gap-2 mt-1 text-[10px] font-semibold text-slate-500">
-                      <span>{grp.members?.length || 1} Members</span>
-                      <span>• Code: {grp.groupCode}</span>
-                    </div>
-                  </div>
+                  + Create Your First Group
                 </button>
-              );
-            })}
+              </div>
+            ) : (
+              groups.map((grp) => {
+                const isSelected = activeGroup?._id === grp._id;
+                return (
+                  <button
+                    key={grp._id}
+                    onClick={() => selectGroup(grp)}
+                    className={`w-full text-left p-3 rounded-2xl transition flex items-start gap-3 cursor-pointer ${
+                      isSelected
+                        ? 'bg-cyan-50 border-2 border-cyan-300 text-cyan-900 shadow-sm'
+                        : 'hover:bg-white text-slate-700 border-2 border-transparent hover:translate-x-0.5'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-fun font-black text-sm shrink-0">
+                      <Hash className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-fun font-bold text-sm truncate">{grp.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{grp.subject}</p>
+                      <div className="flex items-center gap-2 mt-1 text-[10px] font-semibold text-slate-500">
+                        <span>{grp.members?.length || 1} Members</span>
+                        <span>• Code: {grp.groupCode}</span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -368,8 +409,23 @@ export const StudyGroupsPage = () => {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400">
-              Select or create a study group to begin chatting
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-3xl bg-cyan-50 border-2 border-cyan-200 text-cyan-600 flex items-center justify-center shadow-sm">
+                <Users className="w-8 h-8" />
+              </div>
+              <div className="max-w-sm space-y-1">
+                <h3 className="font-fun text-xl font-bold text-slate-900">Your Private Study Channels</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Only your created or joined groups appear in your channels list. Share your 6-character group code with friends to let them join!
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-5 py-2.5 rounded-xl btn-duo-green text-xs font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Create a Study Group</span>
+              </button>
             </div>
           )}
         </div>
@@ -381,8 +437,9 @@ export const StudyGroupsPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button
-              onClick={() => setShowCreateModal(false)}
-              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600"
+              onClick={() => !createLoading && setShowCreateModal(false)}
+              disabled={createLoading}
+              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600 disabled:opacity-50"
             >
               <X className="w-6 h-6" />
             </button>
@@ -399,10 +456,11 @@ export const StudyGroupsPage = () => {
                 <input
                   type="text"
                   required
+                  disabled={createLoading}
                   value={createFormData.name}
                   onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
                   placeholder="e.g. Distributed Systems Study Squad"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -412,10 +470,11 @@ export const StudyGroupsPage = () => {
                 </label>
                 <input
                   type="text"
+                  disabled={createLoading}
                   value={createFormData.subject}
                   onChange={(e) => setCreateFormData({ ...createFormData, subject: e.target.value })}
                   placeholder="Computer Science"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -425,19 +484,30 @@ export const StudyGroupsPage = () => {
                 </label>
                 <textarea
                   rows={3}
+                  disabled={createLoading}
                   value={createFormData.description}
                   onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
                   placeholder="What is the goal of this study group?"
-                  className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none resize-none"
+                  className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:border-mentor-green focus:outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-2xl btn-duo-green text-xs font-black flex items-center justify-center gap-2"
+                disabled={createLoading || !createFormData.name.trim()}
+                className="w-full py-3.5 rounded-2xl btn-duo-green text-xs font-black flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-duo-green"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Create Group & Earn +25 XP</span>
+                {createLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Creating Study Group...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Create Group & Earn +25 XP</span>
+                  </>
+                )}
               </button>
             </form>
           </div>

@@ -31,18 +31,28 @@ export const createGroup = async (req, res) => {
 export const getGroups = async (req, res) => {
   try {
     const { search } = req.query;
-    const query = {};
+    // Only show groups the current user created (admin) or joined (member)
+    const baseQuery = {
+      $or: [
+        { admin: req.user._id },
+        { members: req.user._id },
+      ],
+    };
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { subject: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { groupCode: search.toUpperCase() },
+      baseQuery.$and = [
+        {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { subject: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+            { groupCode: search.toUpperCase() },
+          ],
+        },
       ];
     }
 
-    const groups = await StudyGroup.find(query)
+    const groups = await StudyGroup.find(baseQuery)
       .populate('admin', 'name email profileImage')
       .populate('members', 'name email profileImage')
       .sort({ createdAt: -1 });

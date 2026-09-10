@@ -29,13 +29,14 @@ export const getProgress = async (req, res) => {
       QuizResult.countDocuments({ user: userId, completedAt: { $gte: startOfToday } }),
     ]);
 
-    // Daily target = 5 activities (notes, quizzes, flashcards)
-    const todayCompletedActivities = todayNotes + todayQuizzes;
+    // Daily login / active session counts as 1 activity towards daily goal
+    const loggedInToday = 1;
+    const todayCompletedActivities = todayNotes + todayQuizzes + loggedInToday;
     const dailyGoalTarget = 5;
 
     return res.json({
-      dailyStreak: user.dailyStreak || 0,
-      longestStreak: user.longestStreak || 0,
+      dailyStreak: user.dailyStreak || 1,
+      longestStreak: user.longestStreak || 1,
       totalPoints: user.totalPoints || 0,
       notesCount,
       flashcardsCount,
@@ -58,11 +59,11 @@ export const getStreakInfo = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('dailyStreak longestStreak lastActiveDate totalPoints');
     return res.json({
-      currentStreak: user.dailyStreak || 0,
-      longestStreak: user.longestStreak || 0,
+      currentStreak: user.dailyStreak || 1,
+      longestStreak: user.longestStreak || 1,
       lastActiveDate: user.lastActiveDate,
       totalPoints: user.totalPoints || 0,
-      streakActiveToday: (user.dailyStreak || 0) > 0,
+      streakActiveToday: (user.dailyStreak || 1) > 0,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch streak info' });
@@ -72,10 +73,11 @@ export const getStreakInfo = async (req, res) => {
 export const getAnalytics = async (req, res) => {
   try {
     const userId = req.user._id;
-    const [quizResults, notes, flashcards] = await Promise.all([
+    const [quizResults, notes, flashcards, user] = await Promise.all([
       QuizResult.find({ user: userId }).sort({ completedAt: -1 }),
       Note.find({ user: userId }).select('createdAt'),
       Flashcard.find({ user: userId }).select('createdAt lastReviewed'),
+      User.findById(userId).select('createdAt lastActiveDate loginDates'),
     ]);
 
     // Aggregate topic performance
@@ -105,7 +107,7 @@ export const getAnalytics = async (req, res) => {
       }
     });
 
-    // Aggregate real activity over the last 7 days
+    // Aggregate real activity over the last 7 days (including daily logins)
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const now = new Date();
     const weeklyData = [];
@@ -122,17 +124,26 @@ export const getAnalytics = async (req, res) => {
       const noteCount = notes.filter(n => n.createdAt >= startOfDay && n.createdAt <= endOfDay).length;
       const cardCount = flashcards.filter(f => (f.lastReviewed && f.lastReviewed >= startOfDay && f.lastReviewed <= endOfDay) || (f.createdAt >= startOfDay && f.createdAt <= endOfDay)).length;
 
-      const totalActivitiesOnDay = quizCount + noteCount + cardCount;
+      // Check if user was logged in / active on this calendar day
+      const isTodayDay = i === 0;
+      const hasLoginOnDay = isTodayDay
+        || (user?.lastActiveDate && user.lastActiveDate >= startOfDay && user.lastActiveDate <= endOfDay)
+        || (user?.createdAt && user.createdAt >= startOfDay && user.createdAt <= endOfDay)
+        || (user?.loginDates || []).some(ld => ld >= startOfDay && ld <= endOfDay);
+
+      const loginActivity = hasLoginOnDay ? 1 : 0;
+      const totalActivitiesOnDay = quizCount + noteCount + cardCount + loginActivity;
 
       weeklyData.push({
         day: dayName,
         date: `${d.getMonth() + 1}/${d.getDate()}`,
-        activities: totalActivitiesOnDay, // Starts strictly from 0 and increments with actual student actions!
+        activities: totalActivitiesOnDay, // Counts login + study actions!
       });
     }
 
-    // Realistic study minutes: ~8 mins per note, ~5 mins per quiz, ~2 mins per flashcard
-    const totalStudyMinutes = (notes.length * 8) + (quizResults.length * 5) + Math.min(flashcards.length * 2, 60);
+    // Realistic study minutes: ~8 mins per note, ~5 mins per quiz, ~2 mins per flashcard + active session time
+    const activeDaysCount = weeklyData.filter(w => w.activities > 0).length;
+    const totalStudyMinutes = (notes.length * 8) + (quizResults.length * 5) + Math.min(flashcards.length * 2, 60) + (activeDaysCount * 5);
 
     const averageAccuracy = quizResults.length > 0 
       ? Math.round(quizResults.reduce((sum, q) => sum + (q.score || 0), 0) / quizResults.length)
