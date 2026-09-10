@@ -231,18 +231,8 @@ npm run dev
 ```
 Open **`http://localhost:5173`** in your browser.
 
----
 
-## 7. 🔑 Demo Student Credentials
-
-For rapid testing without registration:
-- **Email:** `demo@pocketmentor.com`
-- **Password:** `password123`
-- *Or click the **"⚡ One-Click Demo Student Login"** button on the Login page.*
-
----
-
-## 8. 📡 API Documentation Summary
+## 7. 📡 API Documentation Summary
 
 | Method | Endpoint | Description | Protected |
 |---|---|---|---|
@@ -275,7 +265,7 @@ For rapid testing without registration:
 
 ---
 
-## 9. 🚀 Future Scope & Roadmap
+## 8. 🚀 Future Scope & Roadmap
 
 1. **SuperMemo SM-2 Spaced Repetition**: Implement algorithmic interval scheduling ($I(n) = I(n-1) \times EF$) to dynamically space flashcard reviews over weeks and months.
 2. **WebRTC P2P Video/Audio Study Rooms**: Upgrade study channels into live audio/video co-working spaces with collaborative whiteboards.
@@ -286,7 +276,7 @@ For rapid testing without registration:
 
 ---
 
-## 10. 📚 References & Bibliography
+## 9. 📚 References & Bibliography
 
 ### Academic Literature
 1. **Ebbinghaus, H.** (1885). *Memory: A Contribution to Experimental Psychology*. Teachers College, Columbia University. (The Forgetting Curve & Spaced Learning).
