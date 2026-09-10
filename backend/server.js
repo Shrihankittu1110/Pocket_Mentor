@@ -125,9 +125,11 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/peer', peerRoutes);
 app.use('/api/progress', progressRoutes);
 
-// Serve static React frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendDist = path.join(__dirname, '../frontend/dist');
+// Serve static React frontend in production (if built locally or unified)
+const frontendDist = path.join(__dirname, '../frontend/dist');
+const hasBuiltFrontend = fs.existsSync(path.join(frontendDist, 'index.html'));
+
+if (process.env.NODE_ENV === 'production' && hasBuiltFrontend) {
   app.use(express.static(frontendDist));
 
   // Catch-all route to serve React index.html for SPA client-side routing
@@ -140,6 +142,16 @@ if (process.env.NODE_ENV === 'production') {
       return next();
     }
     res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  // If running as standalone API backend (e.g. frontend deployed separately on Vercel)
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'healthy',
+      application: 'Pocket Mentor API Server',
+      environment: process.env.NODE_ENV || 'development',
+      documentation: '/api/health',
+    });
   });
 }
 
