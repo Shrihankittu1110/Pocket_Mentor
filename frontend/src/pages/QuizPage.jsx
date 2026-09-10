@@ -186,7 +186,7 @@ export const QuizPage = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-black uppercase mb-1">
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>Duolingo Challenge Arena</span>
+            <span>Interactive Challenge Arena</span>
           </div>
           <h1 className="font-fun text-3xl font-black text-slate-900">
             ❓ Interactive Quiz
@@ -261,7 +261,7 @@ export const QuizPage = () => {
             </p>
           </div>
 
-          {/* Duolingo Streak Maintained Banner */}
+          {/* Daily Streak Maintained Banner */}
           <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <Flame className="w-8 h-8 text-mentor-orange fill-mentor-orange animate-flame" />

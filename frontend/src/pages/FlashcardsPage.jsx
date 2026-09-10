@@ -179,7 +179,7 @@ export const FlashcardsPage = () => {
             🧠 Study Flashcards
           </h1>
           <p className="text-slate-500 text-sm font-medium">
-            Duolingo-style 3D flashcards with voice read-aloud and spaced repetition
+            Interactive 3D flashcards with voice read-aloud and spaced repetition
           </p>
         </div>
 

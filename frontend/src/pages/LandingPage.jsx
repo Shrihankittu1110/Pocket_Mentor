@@ -50,7 +50,7 @@ export const LandingPage = () => {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-mentor-green text-sm font-extrabold shadow-sm">
                 <Sparkles className="w-4 h-4" />
-                <span>The Duolingo for College Notes & Exams</span>
+                <span>The Smart AI Platform for College Notes & Exams</span>
               </div>
 
               <h1 className="font-fun text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
@@ -85,7 +85,7 @@ export const LandingPage = () => {
                   <CheckCircle2 className="w-4 h-4 text-mentor-green" /> Free for Students
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-mentor-orange" /> Duolingo-Style Streaks
+                  <Flame className="w-4 h-4 text-mentor-orange" /> Daily Learning Streaks
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Volume2 className="w-4 h-4 text-mentor-blue" /> Voice Learning
@@ -172,7 +172,7 @@ export const LandingPage = () => {
               { step: '2', title: 'AI Understands', desc: 'Gemini NLP parses definitions & concepts', icon: '🤖' },
               { step: '3', title: 'Get Summary', desc: 'Generate structured & 60-second revisions', icon: '📚' },
               { step: '4', title: 'Flashcards', desc: 'Flip 3D spaced repetition cards with audio', icon: '🧠' },
-              { step: '5', title: 'Take Quiz', desc: 'Duolingo-style MCQs, True/False & feedback', icon: '❓' },
+              { step: '5', title: 'Take Quiz', desc: 'Interactive MCQs, True/False & instant feedback', icon: '❓' },
               { step: '6', title: 'Track Progress', desc: 'Maintain streaks, earn XP, conquer weak spots', icon: '🔥' },
             ].map((item) => (
               <div
@@ -219,7 +219,7 @@ export const LandingPage = () => {
               },
               {
                 title: '3D Interactive Flashcards',
-                desc: 'Duolingo-inspired 3D card flips with spaced repetition ratings, shuffle, and auto-play.',
+                desc: 'Interactive 3D card flips with spaced repetition ratings, shuffle, and auto-play.',
                 icon: Layers,
                 color: 'bg-purple-500',
                 border: 'hover:border-purple-400'
@@ -240,7 +240,7 @@ export const LandingPage = () => {
               },
               {
                 title: 'Daily Streak & XP Levels',
-                desc: 'Stay consistent with Duolingo-style streak flames, milestone achievements, and knowledge points.',
+                desc: 'Stay consistent with daily streak flames, milestone achievements, and knowledge points.',
                 icon: Flame,
                 color: 'bg-orange-500',
                 border: 'hover:border-orange-400'

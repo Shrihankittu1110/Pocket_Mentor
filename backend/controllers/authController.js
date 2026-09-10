@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import { ACHIEVEMENTS_LIST } from '../services/gamificationService.js';
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'pocket_mentor_super_secret_jwt_key_2026_duolingo_style', {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'pocket_mentor_super_secret_jwt_key_2026_production_secure', {
     expiresIn: '30d',
   });
 };

@@ -71,7 +71,7 @@ export const ProfilePage = () => {
 
   const unlockedSlugs = new Set((profileData?.achievements || []).map(a => a.slug));
 
-  // Calculate Duolingo-style XP Level
+  // Calculate Student XP Level
   const currentXP = profileData?.totalPoints || user?.totalPoints || 0;
   const currentLevel = Math.floor(currentXP / 100) + 1;
   const xpInCurrentLevel = currentXP % 100;
@@ -266,7 +266,7 @@ export const ProfilePage = () => {
 
       </div>
 
-      {/* Achievements Showcase (Duolingo Style Badges) */}
+      {/* Achievements Showcase */}
       <div className="bg-white rounded-3xl border-2 border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
         <div>
           <h2 className="font-fun text-2xl font-black text-slate-900 flex items-center gap-2">

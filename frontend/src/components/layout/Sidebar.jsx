@@ -77,7 +77,7 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
         })}
       </nav>
 
-      {/* Duolingo-style Daily Streak Motivator Card at bottom of sidebar */}
+      {/* Daily Streak Motivator Card at bottom of sidebar */}
       {user && (
         <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
           <div className="flex items-center gap-2.5">

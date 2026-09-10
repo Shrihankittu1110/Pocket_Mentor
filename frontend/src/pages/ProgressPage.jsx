@@ -88,7 +88,7 @@ export const ProgressPage = () => {
           </div>
           <div className="space-y-1">
             <span className="text-xs font-black uppercase tracking-wider text-amber-100 bg-white/20 px-3 py-0.5 rounded-full">
-              Duolingo Habit Engine
+              Daily Habit Engine
             </span>
             <h2 className="font-fun text-3xl sm:text-4xl font-black">
               {progress?.dailyStreak || user?.dailyStreak || 1} Day Streak

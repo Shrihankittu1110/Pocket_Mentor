@@ -18,7 +18,7 @@ export const ACHIEVEMENTS_LIST = [
   {
     slug: 'streak_7',
     title: '7-Day Streak Master ⚡',
-    description: 'Duolingo-level dedication! Kept a 7-day streak',
+    description: 'Legendary dedication! Kept a 7-day streak',
     icon: '⚡',
     points: 50,
   },

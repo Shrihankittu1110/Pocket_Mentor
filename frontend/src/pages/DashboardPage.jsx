@@ -106,7 +106,7 @@ export const DashboardPage = () => {
         <div className="relative z-10 space-y-2">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-100">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Duolingo-Powered Study Station</span>
+            <span>AI-Powered Study Station</span>
           </div>
           <h1 className="font-fun text-3xl sm:text-4xl font-black">
             Hello, {user?.name?.split(' ')[0] || 'Student'} 👋
@@ -122,7 +122,7 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* 2. Daily Goal Progress Bar (Duolingo Style) */}
+      {/* 2. Daily Goal Progress Bar */}
       <div className="bg-white rounded-3xl border-2 border-slate-200 p-6 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

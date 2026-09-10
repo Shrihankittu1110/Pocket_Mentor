@@ -1,6 +1,6 @@
 #  Pocket Mentor – AI-Powered Student Learning & Revision Platform
 
-> **Turn Your Notes Into Smarter Learning** — A gamified, Duolingo-inspired full-stack web application built on the **MERN Stack** (MongoDB, Express, React, Node.js) with real-time Socket.io collaboration, AI-driven study generation, and Web Speech API voice synthesis & recognition.
+> **Turn Your Notes Into Smarter Learning** — A gamified, full-stack AI-powered learning web application built on the **MERN Stack** (MongoDB, Express, React, Node.js) with real-time Socket.io collaboration, AI-driven study generation, and Web Speech API voice synthesis & recognition.
 
 ---
 
@@ -9,7 +9,7 @@
 **Pocket Mentor** empowers students to convert lecture transcripts, handwritten slides, PDFs, DOCX files, or pasted notes into interactive, high-retention study resources:
 - 📚 **AI-Powered Topic Summaries**: Structured Markdown with key definitions and takeaways.
 - ⚡ **60-Second Quick Revisions**: Timed countdown summaries designed for lightning-fast exam review.
-- 🧠 **Interactive 3D Flashcards**: Duolingo-style flipping cards with spaced repetition ratings (`Easy` / `Hard`).
+- 🧠 **Interactive 3D Flashcards**: Interactive flipping cards with spaced repetition ratings (`Easy` / `Hard`).
 - ❓ **Smart Quiz Arena**: Multiple-choice, True/False, and Fill-in-the-blank questions with instant feedback and audio chimes.
 - 🔄 **Revise-Again Recommendations**: AI diagnostic highlighting weak topics with 1-click retry flows.
 - 🔥 **Daily Learning Streaks & XP System**: Habit-forming streak engine with celebratory milestones and levels.
@@ -24,7 +24,7 @@
 
 ### Frontend
 - **React.js (Vite)** with JavaScript (ES Modules)
-- **Tailwind CSS** with custom Duolingo-style 3D buttons, badges, and responsive layouts
+- **Tailwind CSS** with custom interactive 3D buttons, badges, and responsive layouts
 - **Framer Motion** for smooth transitions and card flip interactions
 - **Web Speech API**:
   - `SpeechSynthesis` for natural voice read-aloud
@@ -64,7 +64,7 @@ Pocket-Mentor/
 │   │   │   ├── DashboardPage.jsx # Streaks, daily goal progress, statistics
 │   │   │   ├── NotesPage.jsx     # Upload (paste or PDF/DOCX) & AI tools
 │   │   │   ├── QuickRevisionPage.jsx # 60-second timer revision with audio
-│   │   │   ├── FlashcardsPage.jsx    # 3D Duolingo flip cards & voice commands
+│   │   │   ├── FlashcardsPage.jsx    # 3D interactive flip cards & voice commands
 │   │   │   ├── QuizPage.jsx          # Interactive quiz arena & revise-again
 │   │   │   ├── StudyGroupsPage.jsx   # Real-time Socket.io chat rooms
 │   │   │   ├── PeerTeachingPage.jsx  # Student Q&A and mentor voting
@@ -114,7 +114,7 @@ Create/check `backend/.env`:
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/pocket-mentor
-JWT_SECRET=pocket_mentor_super_secret_jwt_key_2026_duolingo_style
+JWT_SECRET=pocket_mentor_super_secret_jwt_key_2026_production_secure
 CLIENT_URL=http://localhost:5173
 AI_API_KEY=your_optional_gemini_api_key
 ```
