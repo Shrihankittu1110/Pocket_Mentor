@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f7f9fa;
+    color: #1e293b;
+  }
+  
+  h1, h2, h3, .font-fun {
+    font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* 3D Duolingo Style Button Utility */
+.btn-duo-green {
+  background-color: #58cc02;
+  box-shadow: 0 4px 0 0 #46a302;
+  color: white;
+  transition: all 0.1s ease;
+}
+.btn-duo-green:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btn-duo-green:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #46a302;
+}
+
+.btn-duo-blue {
+  background-color: #1cb0f6;
+  box-shadow: 0 4px 0 0 #1899d6;
+  color: white;
+  transition: all 0.1s ease;
+}
+.btn-duo-blue:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btn-duo-blue:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #1899d6;
+}
+
+.btn-duo-orange {
+  background-color: #ff9600;
+  box-shadow: 0 4px 0 0 #e08300;
+  color: white;
+  transition: all 0.1s ease;
+}
+.btn-duo-orange:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btn-duo-orange:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #e08300;
+}
+
+.btn-duo-purple {
+  background-color: #ce82ff;
+  box-shadow: 0 4px 0 0 #a559d9;
+  color: white;
+  transition: all 0.1s ease;
+}
+.btn-duo-purple:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btn-duo-purple:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #a559d9;
+}
+
+.btn-duo-white {
+  background-color: #ffffff;
+  box-shadow: 0 4px 0 0 #e5e7eb;
+  color: #4b5563;
+  border: 2px solid #e5e7eb;
+  transition: all 0.1s ease;
+}
+.btn-duo-white:hover:not(:disabled) {
+  background-color: #f9fafb;
+}
+.btn-duo-white:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #e5e7eb;
+}
+
+/* 3D Flashcard Flipping Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
