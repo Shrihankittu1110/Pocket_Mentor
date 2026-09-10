@@ -120,7 +120,7 @@ If you prefer hosting the React client separately on Vercel's global CDN:
 6. Copy your Vercel URL and update the `CLIENT_URL` variable in your Render backend settings so CORS allows requests.
 
 > **💡 SPA Page Refresh Fix Included**:
-> Both [`frontend/vercel.json`](frontend/vercel.json) and root [`vercel.json`](vercel.json) are included with `rewrites` configured to route all paths to `/index.html`. When you refresh the page on any route (like `/notes`, `/quiz`, `/progress`, `/dashboard`), Vercel will serve the application properly without showing `404: NOT_FOUND`.
+> [`frontend/vercel.json`](frontend/vercel.json) is included with `rewrites` configured to route all paths to `/index.html`. When you refresh the page on any route (like `/notes`, `/quiz`, `/progress`, `/dashboard`), Vercel will serve the application properly without showing `404: NOT_FOUND`.
 
 ---
 
