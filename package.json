@@ -25,5 +25,8 @@
     "quiz"
   ],
   "author": "Pocket Mentor Team",
-  "license": "MIT"
+  "license": "MIT",
+  "allowScripts": {
+    "esbuild": true
+  }
 }
