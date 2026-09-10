@@ -46,7 +46,7 @@ export const DashboardPage = () => {
   const stats = [
     {
       title: 'Current Streak',
-      value: `${progressData?.dailyStreak || user?.dailyStreak || 1} Days`,
+      value: `${progressData?.dailyStreak ?? user?.dailyStreak ?? 0} Days`,
       icon: Flame,
       color: 'text-mentor-orange',
       bgColor: 'bg-orange-50',
@@ -78,7 +78,7 @@ export const DashboardPage = () => {
     },
     {
       title: 'Total Points',
-      value: `${progressData?.totalPoints || user?.totalPoints || 0} XP`,
+      value: `${progressData?.totalPoints ?? user?.totalPoints ?? 0} XP`,
       icon: Star,
       color: 'text-amber-500',
       bgColor: 'bg-amber-50',
@@ -94,9 +94,9 @@ export const DashboardPage = () => {
     },
   ];
 
-  const todayCompleted = progressData?.todayProgress?.completed ?? 3;
+  const todayCompleted = progressData?.todayProgress?.completed ?? 0;
   const todayTarget = progressData?.todayProgress?.target ?? 5;
-  const todayPct = progressData?.todayProgress?.percentage ?? 60;
+  const todayPct = progressData?.todayProgress?.percentage ?? 0;
 
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -157,10 +157,10 @@ export const DashboardPage = () => {
             return (
               <div
                 key={item.title}
-                className={`rounded-3xl p-4 border-2 ${item.borderColor} ${item.bgColor} flex flex-col justify-between shadow-sm transition hover:shadow-duo hover:scale-[1.02]`}
+                className={`rounded-3xl p-4 border-2 ${item.borderColor} ${item.bgColor} flex flex-col justify-between shadow-sm transition-all duration-200 hover:shadow-duo hover:-translate-y-1 group cursor-default`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Icon className={`w-6 h-6 ${item.color}`} />
+                  <Icon className={`w-6 h-6 ${item.color} group-hover:scale-110 transition-transform duration-200`} />
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-500 truncate">{item.title}</p>
@@ -182,9 +182,9 @@ export const DashboardPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <Link
             to="/notes?action=upload"
-            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-duo hover:border-emerald-400 flex flex-col items-center text-center gap-2 transition group"
+            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-sm hover:shadow-duo hover:border-emerald-400 hover:-translate-y-1 flex flex-col items-center text-center gap-2 transition-all duration-200 group active:translate-y-0"
           >
-            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-mentor-green flex items-center justify-center group-hover:scale-110 transition">
+            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-mentor-green flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <Upload className="w-5 h-5" />
             </div>
             <span className="font-fun font-bold text-xs sm:text-sm text-slate-800">Upload Notes</span>
@@ -192,9 +192,9 @@ export const DashboardPage = () => {
 
           <Link
             to="/flashcards"
-            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-duo hover:border-purple-400 flex flex-col items-center text-center gap-2 transition group"
+            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-sm hover:shadow-duo hover:border-purple-400 hover:-translate-y-1 flex flex-col items-center text-center gap-2 transition-all duration-200 group active:translate-y-0"
           >
-            <div className="w-11 h-11 rounded-xl bg-purple-100 text-mentor-purple flex items-center justify-center group-hover:scale-110 transition">
+            <div className="w-11 h-11 rounded-xl bg-purple-100 text-mentor-purple flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <Layers className="w-5 h-5" />
             </div>
             <span className="font-fun font-bold text-xs sm:text-sm text-slate-800">Create Flashcards</span>
@@ -202,9 +202,9 @@ export const DashboardPage = () => {
 
           <Link
             to="/quiz"
-            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-duo hover:border-rose-400 flex flex-col items-center text-center gap-2 transition group"
+            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-sm hover:shadow-duo hover:border-rose-400 hover:-translate-y-1 flex flex-col items-center text-center gap-2 transition-all duration-200 group active:translate-y-0"
           >
-            <div className="w-11 h-11 rounded-xl bg-rose-100 text-mentor-red flex items-center justify-center group-hover:scale-110 transition">
+            <div className="w-11 h-11 rounded-xl bg-rose-100 text-mentor-red flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <HelpCircle className="w-5 h-5" />
             </div>
             <span className="font-fun font-bold text-xs sm:text-sm text-slate-800">Take Quiz</span>
@@ -212,9 +212,9 @@ export const DashboardPage = () => {
 
           <Link
             to="/quick-revision"
-            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-duo hover:border-amber-400 flex flex-col items-center text-center gap-2 transition group"
+            className="p-4 rounded-2xl bg-white border-2 border-slate-200 shadow-sm hover:shadow-duo hover:border-amber-400 hover:-translate-y-1 flex flex-col items-center text-center gap-2 transition-all duration-200 group active:translate-y-0"
           >
-            <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <Zap className="w-5 h-5" />
             </div>
             <span className="font-fun font-bold text-xs sm:text-sm text-slate-800">Quick Revision</span>

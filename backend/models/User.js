@@ -40,19 +40,19 @@ const userSchema = new mongoose.Schema({
   },
   dailyStreak: {
     type: Number,
-    default: 1,
+    default: 0,
   },
   longestStreak: {
     type: Number,
-    default: 1,
+    default: 0,
   },
   lastActiveDate: {
     type: Date,
-    default: Date.now,
+    default: null,
   },
   totalPoints: {
     type: Number,
-    default: 100, // Welcome bonus
+    default: 0,
   },
   achievements: [
     {

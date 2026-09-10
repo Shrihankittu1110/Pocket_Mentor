@@ -59,9 +59,9 @@ export const updateDailyStreak = async (user) => {
   const now = new Date();
   const lastActive = user.lastActiveDate ? new Date(user.lastActiveDate) : null;
 
-  if (!lastActive) {
+  if (!lastActive || !user.dailyStreak || user.dailyStreak === 0) {
     user.dailyStreak = 1;
-    user.longestStreak = Math.max(user.longestStreak || 1, 1);
+    user.longestStreak = Math.max(user.longestStreak || 0, 1);
     user.lastActiveDate = now;
     return { streakUpdated: true, currentStreak: user.dailyStreak };
   }

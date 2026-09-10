@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSound } from '../context/SoundContext';
 import Logo from '../components/common/Logo';
@@ -8,6 +8,7 @@ import Logo from '../components/common/Logo';
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,6 +21,7 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
 
@@ -41,7 +43,7 @@ export const LoginPage = () => {
       <div className="w-full max-w-md mb-4">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:text-mentor-green hover:border-emerald-300 transition shadow-sm"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:text-mentor-green hover:border-emerald-300 hover:shadow-sm hover:-translate-x-0.5 transition-all duration-150"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
@@ -64,7 +66,7 @@ export const LoginPage = () => {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-xs font-bold flex items-center gap-2">
+          <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -77,14 +79,15 @@ export const LoginPage = () => {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="email"
                 required
+                disabled={loading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="student@university.edu"
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:bg-white focus:border-mentor-green focus:outline-none transition"
+                className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:bg-white focus:border-mentor-green focus:outline-none transition disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
               />
             </div>
           </div>
@@ -96,25 +99,45 @@ export const LoginPage = () => {
               </label>
             </div>
             <div className="relative">
-              <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
+                disabled={loading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:bg-white focus:border-mentor-green focus:outline-none transition"
+                className="w-full pl-11 pr-11 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:bg-white focus:border-mentor-green focus:outline-none transition disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 transition-colors disabled:opacity-40"
+                title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-2xl btn-duo-green text-base font-black flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl btn-duo-green text-base font-black flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm hover:brightness-105 active:translate-y-0.5"
           >
-            <span>{loading ? 'Signing In...' : 'Log In'}</span>
-            <ArrowRight className="w-5 h-5" />
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Signing In...</span>
+              </>
+            ) : (
+              <>
+                <span>Log In</span>
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
           </button>
         </form>
 

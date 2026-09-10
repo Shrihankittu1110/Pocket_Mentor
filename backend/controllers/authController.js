@@ -27,8 +27,9 @@ export const register = async (req, res) => {
       password,
       college: college || 'Tech University',
       course: course || 'Computer Science',
-      year: year || '3rd Year',
-      totalPoints: 100, // 100 Starter XP
+      totalPoints: 0,
+      dailyStreak: 0,
+      longestStreak: 0,
       achievements: [],
     });
 

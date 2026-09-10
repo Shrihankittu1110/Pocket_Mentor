@@ -59,16 +59,16 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
               to={item.path}
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-sm transition ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-200 group ${
                   isActive
-                    ? 'bg-emerald-50 text-mentor-green border-2 border-emerald-300 shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-2 border-transparent'
+                    ? 'bg-emerald-50 text-mentor-green border-2 border-emerald-300 shadow-sm translate-x-1'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-2 border-transparent hover:translate-x-1'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-mentor-green' : item.color}`} />
+                  <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-mentor-green' : item.color}`} />
                   <span>{item.name}</span>
                 </>
               )}
@@ -79,17 +79,17 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
 
       {/* Daily Streak Motivator Card at bottom of sidebar */}
       {user && (
-        <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+        <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-mentor-orange/20 flex items-center justify-center">
               <Flame className="w-5 h-5 text-mentor-orange fill-mentor-orange animate-flame" />
             </div>
             <div>
               <p className="font-fun font-bold text-amber-900 text-xs sm:text-sm">
-                {user.dailyStreak || 1} Day Streak!
+                {user.dailyStreak ?? 0} Day Streak!
               </p>
               <p className="text-[10px] font-medium text-amber-700">
-                Keep learning daily!
+                {(user.dailyStreak ?? 0) === 0 ? 'Start your first activity!' : 'Keep learning daily!'}
               </p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       {/* Sign Out Button at the Last of Sidebar */}
       <button
         onClick={handleLogout}
-        className="mt-3 w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-2xl font-bold text-sm text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition active:translate-y-0.5 shadow-sm"
+        className="mt-3 w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-2xl font-bold text-sm text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer"
       >
         <LogOut className="w-4 h-4" />
         <span>Sign Out</span>

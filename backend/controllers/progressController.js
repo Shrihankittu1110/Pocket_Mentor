@@ -30,12 +30,12 @@ export const getProgress = async (req, res) => {
     ]);
 
     // Daily target = 5 activities (notes, quizzes, flashcards)
-    const todayCompletedActivities = todayNotes + todayQuizzes + (user.dailyStreak > 0 ? 1 : 0);
+    const todayCompletedActivities = todayNotes + todayQuizzes;
     const dailyGoalTarget = 5;
 
     return res.json({
-      dailyStreak: user.dailyStreak || 1,
-      longestStreak: user.longestStreak || 1,
+      dailyStreak: user.dailyStreak || 0,
+      longestStreak: user.longestStreak || 0,
       totalPoints: user.totalPoints || 0,
       notesCount,
       flashcardsCount,
@@ -58,11 +58,11 @@ export const getStreakInfo = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('dailyStreak longestStreak lastActiveDate totalPoints');
     return res.json({
-      currentStreak: user.dailyStreak || 1,
-      longestStreak: user.longestStreak || 1,
+      currentStreak: user.dailyStreak || 0,
+      longestStreak: user.longestStreak || 0,
       lastActiveDate: user.lastActiveDate,
       totalPoints: user.totalPoints || 0,
-      streakActiveToday: true,
+      streakActiveToday: (user.dailyStreak || 0) > 0,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch streak info' });
@@ -72,7 +72,11 @@ export const getStreakInfo = async (req, res) => {
 export const getAnalytics = async (req, res) => {
   try {
     const userId = req.user._id;
-    const quizResults = await QuizResult.find({ user: userId }).sort({ completedAt: -1 });
+    const [quizResults, notes, flashcards] = await Promise.all([
+      QuizResult.find({ user: userId }).sort({ completedAt: -1 }),
+      Note.find({ user: userId }).select('createdAt'),
+      Flashcard.find({ user: userId }).select('createdAt lastReviewed'),
+    ]);
 
     // Aggregate topic performance
     const topicStats = {};
@@ -101,7 +105,7 @@ export const getAnalytics = async (req, res) => {
       }
     });
 
-    // Mock/aggregate last 7 days activity
+    // Aggregate real activity over the last 7 days
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const now = new Date();
     const weeklyData = [];
@@ -111,26 +115,36 @@ export const getAnalytics = async (req, res) => {
       d.setDate(now.getDate() - i);
       const dayName = days[d.getDay()];
       
-      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
-      const count = quizResults.filter(q => q.completedAt >= startOfDay && q.completedAt <= endOfDay).length;
+      const quizCount = quizResults.filter(q => q.completedAt >= startOfDay && q.completedAt <= endOfDay).length;
+      const noteCount = notes.filter(n => n.createdAt >= startOfDay && n.createdAt <= endOfDay).length;
+      const cardCount = flashcards.filter(f => (f.lastReviewed && f.lastReviewed >= startOfDay && f.lastReviewed <= endOfDay) || (f.createdAt >= startOfDay && f.createdAt <= endOfDay)).length;
+
+      const totalActivitiesOnDay = quizCount + noteCount + cardCount;
+
       weeklyData.push({
         day: dayName,
         date: `${d.getMonth() + 1}/${d.getDate()}`,
-        activities: count > 0 ? count * 3 : (i === 0 ? 3 : (i % 2 === 0 ? 4 : 2)), // engaging realistic activity numbers
+        activities: totalActivitiesOnDay, // Starts strictly from 0 and increments with actual student actions!
       });
     }
+
+    // Realistic study minutes: ~8 mins per note, ~5 mins per quiz, ~2 mins per flashcard
+    const totalStudyMinutes = (notes.length * 8) + (quizResults.length * 5) + Math.min(flashcards.length * 2, 60);
+
+    const averageAccuracy = quizResults.length > 0 
+      ? Math.round(quizResults.reduce((sum, q) => sum + (q.score || 0), 0) / quizResults.length)
+      : 0;
 
     return res.json({
       weeklyProgress: weeklyData,
       weakTopics: Array.from(weakTopicsSet).slice(0, 6),
       strongTopics: Array.from(strongTopicsSet).slice(0, 6),
-      totalStudyMinutes: (quizResults.length * 12) + 45,
+      totalStudyMinutes,
       totalQuizzes: quizResults.length,
-      averageAccuracy: quizResults.length > 0 
-        ? Math.round(quizResults.reduce((sum, q) => sum + (q.score || 0), 0) / quizResults.length)
-        : 85,
+      averageAccuracy,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch analytics' });

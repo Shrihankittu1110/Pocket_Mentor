@@ -237,28 +237,28 @@ export const ProfilePage = () => {
         </div>
 
         {/* Streak Card */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-3xl p-6 shadow-duo-orange space-y-3">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-3xl p-6 shadow-duo-orange space-y-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold uppercase tracking-wider text-amber-100 bg-white/20 px-2.5 py-0.5 rounded-full">
               Active Streak
             </span>
             <Flame className="w-5 h-5 text-white animate-flame" />
           </div>
-          <h2 className="font-fun text-3xl font-black">{profileData?.dailyStreak || 1} Days</h2>
+          <h2 className="font-fun text-3xl font-black">{profileData?.dailyStreak ?? 0} Days</h2>
           <p className="text-xs text-amber-100 font-medium leading-relaxed">
-            Record: {profileData?.longestStreak || 1} Days. Study every day to keep your flame lit!
+            Record: {profileData?.longestStreak ?? 0} Days. Study every day to keep your flame lit!
           </p>
         </div>
 
         {/* Total Knowledge Points */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-3xl p-6 shadow-duo-green space-y-3">
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-3xl p-6 shadow-duo-green space-y-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-100 bg-white/20 px-2.5 py-0.5 rounded-full">
               Total Points
             </span>
             <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
           </div>
-          <h2 className="font-fun text-3xl font-black">{profileData?.totalPoints || 0} XP</h2>
+          <h2 className="font-fun text-3xl font-black">{profileData?.totalPoints ?? 0} XP</h2>
           <p className="text-xs text-emerald-100 font-medium leading-relaxed">
             Earn points from quizzes (+10/+50), flashcards (+5), and teaching peers (+25).
           </p>
