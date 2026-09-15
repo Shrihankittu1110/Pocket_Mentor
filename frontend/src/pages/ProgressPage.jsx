@@ -67,6 +67,14 @@ export const ProgressPage = () => {
   const userLongestStreak = progress?.longestStreak ?? user?.longestStreak ?? 0;
   const hasQuizzes = (progress?.quizzesCompleted || 0) > 0;
 
+  // Guarantee mutual exclusivity safety layer on client side
+  const weakSet = new Set((analytics?.weakTopics || []).map(t => (typeof t === 'string' ? t.trim().toLowerCase() : t.topic?.trim().toLowerCase())));
+  const safeStrongTopics = (analytics?.strongTopics || []).filter(st => {
+    const name = typeof st === 'string' ? st.trim().toLowerCase() : st.topic?.trim().toLowerCase();
+    return !weakSet.has(name);
+  });
+  const safeWeakTopics = analytics?.weakTopics || [];
+
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       
@@ -216,7 +224,7 @@ export const ProgressPage = () => {
 
       </div>
 
-      {/* 3. Strong Topics vs Weak Topics Section */}
+      {/* 3. Strong Topics vs Weak Topics Section (Strictly Mutually Exclusive) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Strong Topics */}
@@ -226,22 +234,22 @@ export const ProgressPage = () => {
             <h3 className="font-fun text-lg font-bold">Strong Topics (Mastered)</h3>
           </div>
           <p className="text-xs text-slate-500 font-medium">
-            Topics where your quiz accuracy is consistently 75% or higher
+            Topics where your overall quiz accuracy is 75% or higher
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {analytics?.strongTopics && analytics.strongTopics.length > 0 ? (
-              analytics.strongTopics.map((st, idx) => (
+            {safeStrongTopics.length > 0 ? (
+              safeStrongTopics.map((st, idx) => (
                 <span
                   key={idx}
                   className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-xl hover:bg-emerald-100 hover:scale-105 transition-all duration-150 cursor-default"
                 >
-                  ✅ {st}
+                  ✅ {typeof st === 'string' ? st : st.topic}
                 </span>
               ))
             ) : (
               <p className="text-xs text-slate-400 font-medium italic py-2">
-                No strong topics recorded yet. Complete quizzes to showcase topics you master!
+                No strong topics recorded yet. Complete quizzes with 75%+ accuracy to showcase topics you master!
               </p>
             )}
           </div>
@@ -254,23 +262,24 @@ export const ProgressPage = () => {
             <h3 className="font-fun text-lg font-bold">Topics Needing Revision</h3>
           </div>
           <p className="text-xs text-slate-500 font-medium">
-            Flagged from missed quiz questions. Review these to boost your exam readiness!
+            Topics where your aggregated quiz accuracy is below 75%. Review these to boost your exam readiness!
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {analytics?.weakTopics && analytics.weakTopics.length > 0 ? (
-              analytics.weakTopics.map((wt, idx) => (
+            {safeWeakTopics.length > 0 ? (
+              safeWeakTopics.map((wt, idx) => (
                 <span
                   key={idx}
                   className="px-3 py-1.5 bg-red-50 text-red-800 border border-red-200 text-xs font-bold rounded-xl hover:bg-red-100 hover:scale-105 transition-all duration-150 cursor-default"
                 >
-                  ❌ {wt}
+                  ❌ {typeof wt === 'string' ? wt : wt.topic}
                 </span>
               ))
             ) : (
-              <p className="text-xs text-slate-400 font-medium italic py-2">
-                No weak topics found! Complete quizzes to identify areas to improve.
-              </p>
+              <div className="w-full p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-200 text-xs text-emerald-800 font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-mentor-green shrink-0" />
+                <span>🎉 You're doing great! No topics currently need revision. Keep practicing to maintain your performance.</span>
+              </div>
             )}
           </div>
 

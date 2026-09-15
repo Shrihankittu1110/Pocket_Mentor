@@ -13,8 +13,16 @@ const messageSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: [true, 'Message text is required'],
+    default: '',
     trim: true,
+  },
+  attachment: {
+    url: { type: String, default: null },
+    name: { type: String, default: null },
+    type: { type: String, default: null },
+    size: { type: Number, default: 0 },
+    mimetype: { type: String, default: null },
+    fileKey: { type: String, default: null },
   },
   sharedNote: {
     type: mongoose.Schema.Types.ObjectId,

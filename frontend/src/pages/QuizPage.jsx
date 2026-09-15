@@ -110,8 +110,8 @@ export const QuizPage = () => {
   const { isListening, toggleListening, lastCommand } = useSpeechRecognition(handleVoiceCommand);
 
   // Check Answer Button
-  const handleCheckAnswer = () => {
-    if (!selectedAnswer || isAnswerChecked) return;
+  const handleCheckAnswer = useCallback(() => {
+    if (!selectedAnswer || isAnswerChecked || !currentQuestion) return;
 
     const correct = (currentQuestion.correctAnswer || '').toString().trim().toLowerCase();
     const selected = selectedAnswer.toString().trim().toLowerCase();
@@ -139,11 +139,12 @@ export const QuizPage = () => {
         isCorrect,
       }
     ]);
-  };
+  }, [selectedAnswer, isAnswerChecked, currentQuestion, currentQIndex, playCorrect, playWrong, awardPoints, speak]);
 
   // Next Question or Finish Quiz
-  const handleNextQuestion = async () => {
+  const handleNextQuestion = useCallback(async () => {
     stop();
+    if (!activeQuiz) return;
     if (currentQIndex + 1 < activeQuiz.questions.length) {
       setCurrentQIndex(prev => prev + 1);
       setSelectedAnswer('');
@@ -165,7 +166,52 @@ export const QuizPage = () => {
         console.error('Failed to submit quiz:', err);
       }
     }
-  };
+  }, [activeQuiz, currentQIndex, startTime, userAnswersList, stop, playFanfare, playStreakFlame]);
+
+  // Keyboard Shortcuts: 1-4 / A-D to select, Enter/Space to check or advance, R to read aloud
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (quizCompleted || !currentQuestion) return;
+
+      const key = e.key.toLowerCase();
+      const code = e.code;
+
+      if (key === 'r') {
+        readQuestionAloud();
+        return;
+      }
+
+      if (!isAnswerChecked) {
+        if ((key === '1' || key === 'a') && currentQuestion.options?.[0]) {
+          setSelectedAnswer(currentQuestion.options[0]);
+        } else if ((key === '2' || key === 'b') && currentQuestion.options?.[1]) {
+          setSelectedAnswer(currentQuestion.options[1]);
+        } else if ((key === '3' || key === 'c') && currentQuestion.options?.[2]) {
+          setSelectedAnswer(currentQuestion.options[2]);
+        } else if ((key === '4' || key === 'd') && currentQuestion.options?.[3]) {
+          setSelectedAnswer(currentQuestion.options[3]);
+        } else if (key === 't' && currentQuestion.options?.some(o => o.toLowerCase() === 'true')) {
+          setSelectedAnswer('True');
+        } else if (key === 'f' && currentQuestion.options?.some(o => o.toLowerCase() === 'false')) {
+          setSelectedAnswer('False');
+        } else if (code === 'Space' || key === 'enter') {
+          if (selectedAnswer) {
+            e.preventDefault();
+            handleCheckAnswer();
+          }
+        }
+      } else {
+        if (code === 'Space' || key === 'enter') {
+          e.preventDefault();
+          handleNextQuestion();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [quizCompleted, currentQuestion, isAnswerChecked, selectedAnswer, handleCheckAnswer, handleNextQuestion, readQuestionAloud]);
 
   // Restart Quiz
   const handleRestartQuiz = () => {
@@ -450,21 +496,26 @@ export const QuizPage = () => {
                     key={idx}
                     disabled={isAnswerChecked}
                     onClick={() => setSelectedAnswer(option)}
-                    className={`p-4 rounded-2xl text-left text-sm font-semibold transition flex items-center justify-between ${btnStyle}`}
+                    className={`p-4 rounded-2xl text-left text-sm font-semibold transition flex items-center justify-between min-h-[52px] ${btnStyle}`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">
+                      <span className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-black text-slate-700 shrink-0 border border-slate-200 shadow-2xs">
                         {String.fromCharCode(65 + idx)}
                       </span>
-                      <span>{option}</span>
+                      <span className="break-words font-medium">{option}</span>
                     </div>
 
-                    {isAnswerChecked && isCorrectOpt && (
-                      <CheckCircle2 className="w-5 h-5 text-mentor-green shrink-0" />
-                    )}
-                    {isAnswerChecked && isSelected && !isCorrectOpt && (
-                      <XCircle className="w-5 h-5 text-mentor-red shrink-0" />
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline-block text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                        [{idx + 1}]
+                      </span>
+                      {isAnswerChecked && isCorrectOpt && (
+                        <CheckCircle2 className="w-5 h-5 text-mentor-green shrink-0 ml-1" />
+                      )}
+                      {isAnswerChecked && isSelected && !isCorrectOpt && (
+                        <XCircle className="w-5 h-5 text-mentor-red shrink-0 ml-1" />
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -482,12 +533,12 @@ export const QuizPage = () => {
                 <div className="flex items-center gap-2 mb-1">
                   {selectedAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase() ? (
                     <>
-                      <CheckCircle2 className="w-5 h-5 text-mentor-green" />
+                      <CheckCircle2 className="w-5 h-5 text-mentor-green shrink-0" />
                       <span className="font-fun font-black text-base text-emerald-800">🎉 Correct! Great job! +10 XP</span>
                     </>
                   ) : (
                     <>
-                      <XCircle className="w-5 h-5 text-mentor-red" />
+                      <XCircle className="w-5 h-5 text-mentor-red shrink-0" />
                       <span className="font-fun font-black text-base text-red-800">❌ Not Quite</span>
                     </>
                   )}
@@ -505,30 +556,47 @@ export const QuizPage = () => {
             )}
 
             {/* Action Bar (Check Answer / Continue) */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-3">
+            <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-400">
+                <span>⌨️ Press <kbd className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 font-mono text-slate-700">1-4</kbd> or <kbd className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 font-mono text-slate-700">A-D</kbd> to choose · <kbd className="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 font-mono text-slate-700">Enter / Space</kbd> to submit</span>
+              </div>
+
               {!isAnswerChecked ? (
                 <button
                   disabled={!selectedAnswer}
                   onClick={handleCheckAnswer}
-                  className={`px-8 py-3.5 rounded-2xl text-sm font-black transition ${
+                  className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-black transition min-h-[48px] flex items-center justify-center ${
                     selectedAnswer
                       ? 'btn-duo-green'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  Check Answer
+                  Check Answer (Enter)
                 </button>
               ) : (
                 <button
                   onClick={handleNextQuestion}
-                  className="px-8 py-3.5 rounded-2xl btn-duo-green text-sm font-black flex items-center gap-2"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl btn-duo-green text-sm font-black flex items-center justify-center gap-2 min-h-[48px]"
                 >
-                  <span>{currentQIndex + 1 < activeQuiz.questions.length ? 'Next Question' : 'View Results'}</span>
+                  <span>{currentQIndex + 1 < activeQuiz.questions.length ? 'Next Question' : 'View Results'} (Enter)</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
             </div>
 
+          </div>
+
+          {/* Keyboard Shortcut Indicator Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2 py-2 text-[11px] font-bold text-slate-500 bg-slate-100/80 rounded-2xl border border-slate-200 px-4">
+            <span className="text-slate-400 font-extrabold uppercase text-[10px]">Shortcuts:</span>
+            <span className="px-2 py-0.5 bg-white rounded-md border border-slate-300 text-slate-700 font-mono">1-4 / A-D</span>
+            <span>Select Option</span>
+            <span className="text-slate-300">•</span>
+            <span className="px-2 py-0.5 bg-white rounded-md border border-slate-300 text-slate-700 font-mono">Enter / Space</span>
+            <span>Check / Next</span>
+            <span className="text-slate-300">•</span>
+            <span className="px-2 py-0.5 bg-white rounded-md border border-slate-300 text-slate-700 font-mono">R</span>
+            <span>Listen Aloud</span>
           </div>
 
         </div>

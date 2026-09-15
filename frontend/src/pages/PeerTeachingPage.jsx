@@ -340,8 +340,8 @@ export const PeerTeachingPage = () => {
                         </p>
 
                         {/* Voting & Mentor Rewards Row */}
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                          <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center gap-2">
                             <button
                               onClick={() => handleVote(ans._id, 'helpful')}
                               className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200 flex items-center gap-1.5 transition"
@@ -355,7 +355,7 @@ export const PeerTeachingPage = () => {
                               className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-1.5 transition"
                             >
                               <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-                              <span>Great Explanation ({ans.loveVotes?.length || 0})</span>
+                              <span>Great ({ans.loveVotes?.length || 0})</span>
                             </button>
                           </div>
 
@@ -395,7 +395,7 @@ export const PeerTeachingPage = () => {
                   <button
                     type="submit"
                     disabled={submittingAnswer || !answerContent.trim()}
-                    className="px-6 py-2.5 rounded-xl btn-duo-purple text-xs font-black flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl btn-duo-purple text-xs font-black flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submittingAnswer ? 'Posting...' : 'Post Explanation (+25 XP)'}</span>
@@ -415,12 +415,12 @@ export const PeerTeachingPage = () => {
 
       {/* Ask Question Modal */}
       {showAskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-8 space-y-4 shadow-2xl relative">
             <button
               onClick={() => !askLoading && setShowAskModal(false)}
               disabled={askLoading}
-              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600 disabled:opacity-50"
+              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-slate-600 disabled:opacity-50 min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
               <X className="w-6 h-6" />
             </button>

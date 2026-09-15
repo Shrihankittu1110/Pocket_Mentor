@@ -3,6 +3,31 @@ import path from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 
+/**
+ * Custom PDF page renderer that preserves page numbers and headings
+ */
+const customPageRender = async (pageData) => {
+  try {
+    const textContent = await pageData.getTextContent();
+    let lastY = null;
+    let text = '';
+    
+    for (const item of textContent.items) {
+      if (lastY === null || Math.abs(lastY - item.transform[5]) < 2) {
+        text += (text.length > 0 && !text.endsWith(' ') && !item.str.startsWith(' ') ? ' ' : '') + item.str;
+      } else {
+        text += '\n' + item.str;
+      }
+      lastY = item.transform[5];
+    }
+    
+    const pageNum = pageData.pageIndex + 1;
+    return `\n\n--- [Page ${pageNum}] ---\n\n` + text;
+  } catch {
+    return `\n\n--- [Page ${pageData.pageIndex + 1}] ---\n\n`;
+  }
+};
+
 export const extractTextFromFile = async (filePath, originalName) => {
   const ext = path.extname(originalName || filePath).toLowerCase();
   
@@ -14,8 +39,16 @@ export const extractTextFromFile = async (filePath, originalName) => {
     
     if (ext === '.pdf') {
       const dataBuffer = fs.readFileSync(filePath);
-      const pdfData = await pdfParse(dataBuffer);
-      return pdfData.text.trim();
+      try {
+        const pdfData = await pdfParse(dataBuffer, { pagerender: customPageRender });
+        if (pdfData && pdfData.text && pdfData.text.trim().length > 0) {
+          return pdfData.text.trim();
+        }
+      } catch (pdfErr) {
+        console.warn('Custom page render failed, falling back to standard pdfParse:', pdfErr.message);
+      }
+      const fallbackPdfData = await pdfParse(dataBuffer);
+      return fallbackPdfData.text.trim();
     }
     
     if (ext === '.docx' || ext === '.doc') {
@@ -31,3 +64,4 @@ export const extractTextFromFile = async (filePath, originalName) => {
     throw new Error(`Failed to extract text from document: ${error.message}`);
   }
 };
+

@@ -31,6 +31,7 @@ const studyGroupSchema = new mongoose.Schema({
     type: String,
     uppercase: true,
     trim: true,
+    default: () => Math.random().toString(36).substring(2, 8).toUpperCase(),
   },
   createdAt: {
     type: Date,

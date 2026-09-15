@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Sparkles } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 
 export const Logo = ({ size = 'md', showText = true, badge = 'AI LEARNING' }) => {
   const isSmall = size === 'sm';
@@ -11,14 +11,11 @@ export const Logo = ({ size = 'md', showText = true, badge = 'AI LEARNING' }) =>
 
   return (
     <div className="flex items-center gap-2.5 group">
-      {/* Modern Gradient Emblem with Graduation Cap and Sparkle */}
+      {/* Modern Gradient Emblem with Graduation Cap */}
       <div
-        className={`${boxSize} rounded-2xl bg-gradient-to-tr from-mentor-green via-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-duo-green group-hover:scale-105 transition-transform relative`}
+        className={`${boxSize} rounded-2xl bg-gradient-to-tr from-mentor-green via-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-duo-green group-hover:scale-105 transition-transform`}
       >
         <GraduationCap className={`${iconSize} stroke-[2.4] text-white`} />
-        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 rounded-full border-2 border-white flex items-center justify-center">
-          <Sparkles className="w-2 h-2 text-amber-900 fill-amber-900" />
-        </span>
       </div>
 
       {showText && (
@@ -38,3 +35,4 @@ export const Logo = ({ size = 'md', showText = true, badge = 'AI LEARNING' }) =>
 };
 
 export default Logo;
+

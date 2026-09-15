@@ -7,8 +7,11 @@ import {
   leaveGroup,
   getGroupMessages,
   postMessage,
+  getGroupFile,
+  deleteMessage,
 } from '../controllers/groupController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { groupUpload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -21,6 +24,10 @@ router.post('/:id/join', joinGroup);
 router.post('/join', joinGroup); // join by groupCode in body
 router.post('/:id/leave', leaveGroup);
 router.get('/:id/messages', getGroupMessages);
-router.post('/:id/message', postMessage);
+router.post('/:id/message', groupUpload.single('file'), postMessage);
+router.get('/:id/files/:filename', getGroupFile);
+router.delete('/:id/messages/:messageId', deleteMessage);
 
 export default router;
+
+

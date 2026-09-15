@@ -44,7 +44,11 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       {/* Mobile close button header */}
       <div className="flex items-center justify-between lg:hidden mb-4 pb-2 border-b border-slate-100">
         <span className="font-fun text-xl font-bold text-slate-800">Navigation</span>
-        <button onClick={onCloseMobile} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+        <button
+          onClick={onCloseMobile}
+          className="p-2 -mr-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+          aria-label="Close navigation"
+        >
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -59,7 +63,7 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
               to={item.path}
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-200 group ${
+                `flex items-center gap-3 px-3.5 py-3 lg:py-2.5 rounded-2xl font-bold text-sm transition-all duration-200 group min-h-[44px] ${
                   isActive
                     ? 'bg-emerald-50 text-mentor-green border-2 border-emerald-300 shadow-sm translate-x-1'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-2 border-transparent hover:translate-x-1'
@@ -68,8 +72,8 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-mentor-green' : item.color}`} />
-                  <span>{item.name}</span>
+                  <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 shrink-0 ${isActive ? 'text-mentor-green' : item.color}`} />
+                  <span className="truncate">{item.name}</span>
                 </>
               )}
             </NavLink>

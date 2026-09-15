@@ -70,42 +70,109 @@ export const getStreakInfo = async (req, res) => {
   }
 };
 
+/**
+ * Normalizes a topic name: trims whitespace and collapses multi-spaces.
+ */
+export const normalizeTopicName = (name) => {
+  if (!name || typeof name !== 'string') return 'General';
+  return name.trim().replace(/\s+/g, ' ');
+};
+
+/**
+ * Single source of truth topic performance aggregator across all quiz attempts.
+ * 
+ * Rules:
+ * - Aggregates total questions and total correct answers per normalized topic
+ * - Calculates accuracy = (totalCorrect / totalAttempted) * 100
+ * - If Accuracy >= 75%: status = 'strong' -> strongTopics ONLY
+ * - If Accuracy < 75%: status = 'needs_revision' -> weakTopics ONLY
+ * - Strong and Weak topics are strictly mutually exclusive.
+ */
+export const aggregateTopicPerformance = (quizResults = []) => {
+  const STRONG_THRESHOLD = 75;
+  const topicMap = new Map();
+
+  quizResults.forEach(qr => {
+    if (qr.userAnswers && qr.userAnswers.length > 0) {
+      qr.userAnswers.forEach(ans => {
+        const rawTopic = ans.topic || (qr.quiz && qr.quiz.topic) || 'General';
+        const cleanTopic = normalizeTopicName(rawTopic);
+        const key = cleanTopic.toLowerCase();
+
+        if (!topicMap.has(key)) {
+          topicMap.set(key, { topic: cleanTopic, attempted: 0, correct: 0 });
+        }
+
+        const entry = topicMap.get(key);
+        entry.attempted += 1;
+        if (ans.isCorrect) {
+          entry.correct += 1;
+        }
+      });
+    } else {
+      const rawTopic = (qr.quiz && qr.quiz.topic) || 'General';
+      const cleanTopic = normalizeTopicName(rawTopic);
+      const key = cleanTopic.toLowerCase();
+
+      if (!topicMap.has(key)) {
+        topicMap.set(key, { topic: cleanTopic, attempted: 0, correct: 0 });
+      }
+
+      const entry = topicMap.get(key);
+      entry.attempted += (qr.totalQuestions || 1);
+      entry.correct += (qr.correctAnswers || 0);
+    }
+  });
+
+  const topics = [];
+  const strongTopics = [];
+  const weakTopics = [];
+
+  for (const [key, data] of topicMap.entries()) {
+    if (data.attempted === 0) continue;
+
+    const accuracy = Math.round((data.correct / data.attempted) * 100);
+    let status;
+
+    if (accuracy >= STRONG_THRESHOLD) {
+      status = 'strong';
+      strongTopics.push(data.topic);
+    } else {
+      status = 'needs_revision';
+      weakTopics.push(data.topic);
+    }
+
+    topics.push({
+      topic: data.topic,
+      attempted: data.attempted,
+      correct: data.correct,
+      accuracy,
+      status,
+    });
+  }
+
+  // Sort topics by accuracy descending
+  topics.sort((a, b) => b.accuracy - a.accuracy);
+
+  return {
+    topics,
+    strongTopics,
+    weakTopics,
+  };
+};
+
 export const getAnalytics = async (req, res) => {
   try {
     const userId = req.user._id;
     const [quizResults, notes, flashcards, user] = await Promise.all([
-      QuizResult.find({ user: userId }).sort({ completedAt: -1 }),
+      QuizResult.find({ user: userId }).populate('quiz', 'topic title').sort({ completedAt: -1 }),
       Note.find({ user: userId }).select('createdAt'),
       Flashcard.find({ user: userId }).select('createdAt lastReviewed'),
       User.findById(userId).select('createdAt lastActiveDate loginDates'),
     ]);
 
-    // Aggregate topic performance
-    const topicStats = {};
-    const weakTopicsSet = new Set();
-    const strongTopicsSet = new Set();
-
-    quizResults.forEach(qr => {
-      (qr.weakTopics || []).forEach(wt => weakTopicsSet.add(wt));
-
-      (qr.userAnswers || []).forEach(ans => {
-        const topic = ans.topic || 'General';
-        if (!topicStats[topic]) {
-          topicStats[topic] = { correct: 0, total: 0 };
-        }
-        topicStats[topic].total += 1;
-        if (ans.isCorrect) topicStats[topic].correct += 1;
-      });
-    });
-
-    Object.keys(topicStats).forEach(topic => {
-      const acc = topicStats[topic].correct / topicStats[topic].total;
-      if (acc >= 0.75) {
-        strongTopicsSet.add(topic);
-      } else {
-        weakTopicsSet.add(topic);
-      }
-    });
+    // Single source of truth topic performance aggregation
+    const { topics, strongTopics, weakTopics } = aggregateTopicPerformance(quizResults);
 
     // Aggregate real activity over the last 7 days (including daily logins)
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -137,7 +204,7 @@ export const getAnalytics = async (req, res) => {
       weeklyData.push({
         day: dayName,
         date: `${d.getMonth() + 1}/${d.getDate()}`,
-        activities: totalActivitiesOnDay, // Counts login + study actions!
+        activities: totalActivitiesOnDay,
       });
     }
 
@@ -151,8 +218,9 @@ export const getAnalytics = async (req, res) => {
 
     return res.json({
       weeklyProgress: weeklyData,
-      weakTopics: Array.from(weakTopicsSet).slice(0, 6),
-      strongTopics: Array.from(strongTopicsSet).slice(0, 6),
+      topics,
+      weakTopics: weakTopics.slice(0, 8),
+      strongTopics: strongTopics.slice(0, 8),
       totalStudyMinutes,
       totalQuizzes: quizResults.length,
       averageAccuracy,

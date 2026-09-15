@@ -169,7 +169,7 @@ export const LandingPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {[
               { step: '1', title: 'Upload Notes', desc: 'Paste text or upload PDF / DOCX / TXT notes', icon: '📝' },
-              { step: '2', title: 'AI Understands', desc: 'Gemini NLP parses definitions & concepts', icon: '🤖' },
+              { step: '2', title: 'AI Understands', desc: 'Smart NLP parses definitions & concepts', icon: '🤖' },
               { step: '3', title: 'Get Summary', desc: 'Generate structured & 60-second revisions', icon: '📚' },
               { step: '4', title: 'Flashcards', desc: 'Flip 3D spaced repetition cards with audio', icon: '🧠' },
               { step: '5', title: 'Take Quiz', desc: 'Interactive MCQs, True/False & instant feedback', icon: '❓' },

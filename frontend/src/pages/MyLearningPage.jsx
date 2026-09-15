@@ -9,9 +9,12 @@ import {
   ArrowRight,
   Sparkles,
   Zap,
-  BookmarkCheck
+  BookmarkCheck,
+  FileText
 } from 'lucide-react';
 import api from '../services/api';
+import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
+import RichSummaryViewer from '../components/common/RichSummaryViewer';
 
 export const MyLearningPage = () => {
   const [activeTab, setActiveTab] = useState('notes'); // 'notes', 'flashcards', 'quizzes', 'history'
@@ -21,6 +24,10 @@ export const MyLearningPage = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [quizResults, setQuizResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [summaryModalNote, setSummaryModalNote] = useState(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+
+  const { speak, pause, resume, stop, repeat, isSpeaking, isPaused } = useSpeechSynthesis();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -45,6 +52,22 @@ export const MyLearningPage = () => {
 
     fetchAll();
   }, []);
+
+  const handleOpenSummary = async (note) => {
+    setSummaryModalNote(note);
+    if (!note.summary) {
+      try {
+        setGeneratingSummary(true);
+        const { data } = await api.post(`/notes/${note._id}/summary`);
+        setSummaryModalNote(prev => ({ ...prev, summary: data.summary }));
+        setNotes(prev => prev.map(n => n._id === note._id ? { ...n, summary: data.summary } : n));
+      } catch (err) {
+        alert('Failed to generate study summary: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setGeneratingSummary(false);
+      }
+    }
+  };
 
   const filteredNotes = notes.filter(n =>
     n.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -134,19 +157,38 @@ export const MyLearningPage = () => {
             </div>
           ) : (
             filteredNotes.map((n) => (
-              <div key={n._id} className="bg-white rounded-3xl border-2 border-slate-200 p-5 space-y-3 shadow-sm hover:border-emerald-300 transition">
-                <span className="text-[11px] font-black uppercase text-mentor-green bg-emerald-50 px-2.5 py-0.5 rounded-md">
-                  {n.topic}
-                </span>
-                <h3 className="font-fun text-base font-bold text-slate-900 line-clamp-1">{n.title}</h3>
-                <p className="text-xs text-slate-500 line-clamp-2">{n.content}</p>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <Link to={`/quick-revision?noteId=${n._id}`} className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5" /> 60s Revise
-                  </Link>
-                  <Link to={`/flashcards?noteId=${n._id}`} className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">
-                    <Layers className="w-3.5 h-3.5" /> Flashcards
-                  </Link>
+              <div key={n._id} className="bg-white rounded-3xl border-2 border-slate-200 p-5 space-y-3 shadow-sm hover:border-emerald-300 transition flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase text-mentor-green bg-emerald-50 px-2.5 py-0.5 rounded-md">
+                      {n.topic}
+                    </span>
+                    {n.summary && (
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                        ✨ Study Guide Ready
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-fun text-base font-bold text-slate-900 line-clamp-1">{n.title}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2">{n.content}</p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <button
+                    onClick={() => handleOpenSummary(n)}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>{n.summary ? 'View Guide' : 'AI Summary'}</span>
+                  </button>
+                  <div className="flex items-center gap-3">
+                    <Link to={`/quick-revision?noteId=${n._id}`} className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
+                      <Zap className="w-3.5 h-3.5" /> 60s
+                    </Link>
+                    <Link to={`/flashcards?noteId=${n._id}`} className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">
+                      <Layers className="w-3.5 h-3.5" /> Deck
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))
@@ -246,6 +288,47 @@ export const MyLearningPage = () => {
           )}
         </div>
 
+      )}
+
+      {/* AI Deep Study Summary Modal */}
+      {summaryModalNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md">
+          <div className="max-w-4xl w-full">
+            {generatingSummary ? (
+              <div className="bg-white rounded-3xl border-2 border-slate-200 p-12 text-center space-y-4 shadow-2xl">
+                <div className="w-16 h-16 rounded-3xl bg-indigo-50 border-2 border-indigo-200 text-indigo-600 mx-auto flex items-center justify-center animate-spin">
+                  <Sparkles className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="font-fun text-xl font-bold text-slate-900">
+                    Generating Deep Mastery Study Guide...
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Analyzing note concepts, technical glossary, step-by-step mechanisms, exam traps, and recall checklists.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <RichSummaryViewer
+                summaryText={summaryModalNote.summary}
+                topic={summaryModalNote.title || summaryModalNote.topic || 'Study Topic'}
+                voiceProps={{
+                  isSpeaking,
+                  isPaused,
+                  onSpeak: () => speak(summaryModalNote.summary),
+                  onPause: pause,
+                  onResume: resume,
+                  onStop: stop,
+                  onRepeat: repeat,
+                }}
+                onClose={() => {
+                  stop();
+                  setSummaryModalNote(null);
+                }}
+              />
+            )}
+          </div>
+        </div>
       )}
 
     </div>

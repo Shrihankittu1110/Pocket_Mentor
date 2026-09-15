@@ -39,11 +39,8 @@ const noteSchema = new mongoose.Schema({
     default: '',
   },
   quickRevision: {
-    topic: { type: String, default: '' },
-    overview: { type: String, default: '' },
-    keyPoints: [{ type: String }],
-    examples: [{ type: String }],
-    durationSeconds: { type: Number, default: 60 },
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
   },
   createdAt: {
     type: Date,

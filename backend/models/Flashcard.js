@@ -21,6 +21,21 @@ const flashcardSchema = new mongoose.Schema({
     enum: ['easy', 'medium', 'hard'],
     default: 'medium',
   },
+  options: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
+  correctAnswer: {
+    type: String,
+    trim: true,
+  },
+  questionType: {
+    type: String,
+    enum: ['standard', 'mcq', 'true_false', 'fill_blank'],
+    default: 'standard',
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

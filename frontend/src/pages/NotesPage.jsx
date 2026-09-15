@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSound } from '../context/SoundContext';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import VoiceControls from '../components/common/VoiceControls';
+import RichSummaryViewer from '../components/common/RichSummaryViewer';
 
 export const NotesPage = () => {
   const [searchParams] = useSearchParams();
@@ -154,6 +155,20 @@ export const NotesPage = () => {
       } finally {
         setGeneratingSummary(false);
       }
+    }
+  };
+
+  const handleRegenerateSummary = async (note) => {
+    if (!note) return;
+    try {
+      setGeneratingSummary(true);
+      const { data } = await api.post(`/notes/${note._id}/summary`);
+      setSummaryModalNote(prev => ({ ...prev, summary: data.summary }));
+      setNotes(prev => prev.map(n => n._id === note._id ? { ...n, summary: data.summary } : n));
+    } catch (err) {
+      alert('Failed to regenerate summary: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setGeneratingSummary(false);
     }
   };
 
@@ -350,13 +365,13 @@ export const NotesPage = () => {
 
       {/* Upload Notes Modal (Option 1: Paste, Option 2: Upload TXT/PDF/DOCX) */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-8 space-y-6 shadow-2xl relative">
             <button
               onClick={() => setShowUploadModal(false)}
-              className="absolute right-5 top-5 p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+              className="absolute right-4 sm:right-5 top-4 sm:top-5 p-1 text-slate-400 hover:text-slate-600 rounded-lg min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             <div className="space-y-1">
@@ -497,70 +512,45 @@ export const NotesPage = () => {
         </div>
       )}
 
-      {/* AI Summary Modal with Voice Playback */}
+      {/* AI Deep Study Summary Modal */}
       {summaryModalNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl border-2 border-slate-200 max-w-2xl w-full p-6 sm:p-8 space-y-4 shadow-2xl relative max-h-[85vh] flex flex-col">
-            <button
-              onClick={() => {
-                stop();
-                setSummaryModalNote(null);
-              }}
-              className="absolute right-5 top-5 p-1 text-slate-400 hover:text-slate-600 rounded-lg"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="border-b border-slate-100 pb-3 pr-8">
-              <span className="text-[11px] font-black uppercase text-mentor-green bg-emerald-50 px-2 py-0.5 rounded">
-                AI Topic Summary
-              </span>
-              <h2 className="font-fun text-2xl font-black text-slate-900 mt-1">
-                {summaryModalNote.title}
-              </h2>
-            </div>
-
-            {/* Voice Controls Bar */}
-            {summaryModalNote.summary && (
-              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-2xl p-2.5 px-4">
-                <VoiceControls
-                  isSpeaking={isSpeaking}
-                  isPaused={isPaused}
-                  onSpeak={() => speak(summaryModalNote.summary)}
-                  onPause={pause}
-                  onResume={resume}
-                  onStop={stop}
-                  onRepeat={repeat}
-                  label="Listen to Summary"
-                />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md">
+          <div className="max-w-4xl w-full">
+            {generatingSummary ? (
+              <div className="bg-white rounded-3xl border-2 border-slate-200 p-12 text-center space-y-4 shadow-2xl">
+                <div className="w-16 h-16 rounded-3xl bg-indigo-50 border-2 border-indigo-200 text-indigo-600 mx-auto flex items-center justify-center animate-spin">
+                  <Sparkles className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="font-fun text-xl font-bold text-slate-900">
+                    Generating Deep Mastery Study Guide...
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Analyzing note concepts, technical glossary, step-by-step mechanisms, exam traps, and recall checklists.
+                  </p>
+                </div>
               </div>
-            )}
-
-            {/* Summary Content */}
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-              {generatingSummary ? (
-                <div className="text-center py-12 space-y-3">
-                  <div className="inline-block w-8 h-8 border-4 border-mentor-blue border-t-transparent rounded-full animate-spin"></div>
-                  <p className="font-fun font-bold text-slate-600">AI is distilling core concepts and definitions...</p>
-                </div>
-              ) : (
-                <div className="prose prose-sm max-w-none">
-                  {summaryModalNote.summary || "Generating structured study summary..."}
-                </div>
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={() => {
+            ) : (
+              <RichSummaryViewer
+                summaryText={summaryModalNote.summary}
+                topic={summaryModalNote.title || summaryModalNote.topic || 'Study Topic'}
+                onRegenerate={() => handleRegenerateSummary(summaryModalNote)}
+                regenerating={generatingSummary}
+                voiceProps={{
+                  isSpeaking,
+                  isPaused,
+                  onSpeak: () => speak(summaryModalNote.summary),
+                  onPause: pause,
+                  onResume: resume,
+                  onStop: stop,
+                  onRepeat: repeat,
+                }}
+                onClose={() => {
                   stop();
                   setSummaryModalNote(null);
                 }}
-                className="px-5 py-2.5 rounded-xl btn-duo-white font-bold text-xs"
-              >
-                Close
-              </button>
-            </div>
+              />
+            )}
           </div>
         </div>
       )}
